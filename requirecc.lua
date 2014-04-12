@@ -41,9 +41,9 @@ local urlDecorators = {
 local repo = {
 
     add = function(name, url)
-      if not name or not url then 
+      if not name or not url then
         print("usage: add [name] [url]")
-        return 
+        return
       end
       local decorator = urlDecorators[string.gsub(string.match(url, "^%a+://") or "", "://$", "")]
 
@@ -93,7 +93,7 @@ local repo = {
         print(string.format("cannot delete repo %s: repo does not exist!", name))
       end
     end,
-    
+
     clear = function(force)
       if force == "f" or promptYesNo("really clear all repositories", false, "y", "n") then
         local uri = path.."/"..name_repos
@@ -105,8 +105,8 @@ local repo = {
     end,
 }
 
-
-local commands = {
+local commands
+commands = {
   repo = repo,
   load = function(name, alias)
     if name then
@@ -130,8 +130,31 @@ local commands = {
     end
   end,
 
-  debug = function(command)
+  run = function(name, ...)
+    local uri = path.."/"..name_local.."/"..name
+    if not fs.exists(uri) then
+      loadrequire(name)
+    end
+    return loadfile(uri, ...)()
+  end,
 
+  call = function(name, ...)
+    local tocall, e = commands.run(name, ...)
+    if tocall then
+      tocall()
+    else
+      print("cannot call "..name)
+    end
+  end,
+
+  clear = function()
+    if force == "f" or promptYesNo("really clear all local requires", false, "y", "n") then
+      local uri = path.."/"..name_local
+      for i, name in ipairs(fs.list(uri)) do
+        fs.delete(uri.."/"..name)
+      end
+      print("cleared all local requires")
+    end
   end
 }
 
