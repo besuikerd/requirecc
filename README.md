@@ -1,0 +1,4 @@
+requirecc
+=========
+
+Computercraft dependency manager
